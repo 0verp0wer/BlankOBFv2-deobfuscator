@@ -29,7 +29,7 @@ class detector:
                 except:
                     content = first_layer.deobfuscate_first_layer(content)
                     content = second_layer.deobfuscate_second_layer(content)
-        with open("output.py", "w") as f:
+        with open("output.py", "w", encoding="utf-8") as f:
             f.write(content)
 
 class first_layer:
@@ -39,13 +39,13 @@ class first_layer:
         # earth = bytes([111, 69, 119, 109, 79, 103, 114, 81, ...])
         # wind =  bytes([116, 89, 81, 87, 102, 89, 99, 117, 65, ...])
         base64_values = []
-        matches = re.findall(r'\b([a-zA-Z_]\w*)\s*=\s*(.+?)\s*(?:$|(?=\n))', content, re.MULTILINE)
+        matches = re.findall(r'\b([\w\u00C0-\u024F\u1E00-\u1EFF]+)\s*=\s*(.+?)\s*(?:$|(?=\n))', content, re.MULTILINE)
         for match in matches:
             value = match[1]
             base64_values.append(eval(value))
         return base64_values
     
-    def remove_second_layer(base64_values):
+    def remove_first_layer(base64_values):
         # first_layer = exec(__import__("zlib").decompress(__import__("base64").b64decode(fire + water + earth + wind)))
         base64_string = ""
         for value in base64_values:
@@ -55,14 +55,14 @@ class first_layer:
     
     def deobfuscate_first_layer(content):
         base64_values = first_layer.get_variables_name_and_values(content)
-        content = first_layer.remove_second_layer(base64_values)
+        content = first_layer.remove_first_layer(base64_values)
         return content
 
 class second_layer:
     def get_variable_name_and_value(content):
         # name = "".join(random.choices(dir(builtins), k=random.randint(10, 25)))
         # value = [73, 173, 212, 107, 106, 94, 34, 120, 43, 76, 214, 102, 133, ...]
-        match = re.search(r'\b([a-zA-Z_]\w*)\s*=\s*(.+?)\s*(?:$|(?=\n))', content, re.MULTILINE)
+        match = re.search(r'\b([\w\u00C0-\u024F\u1E00-\u1EFF]+)\s*=\s*(.+?)\s*(?:$|(?=\n))', content, re.MULTILINE)
         name_encrypted = match.group(1)
         value = eval(match.group(2))
         return name_encrypted, value
@@ -104,7 +104,7 @@ class second_layer:
 class third_layer:
     def get_ip_table(content):
         # ip_table = ['101.74.119.100', '121.75.69.79', '103.122.65.81', ...]
-        match = re.search(r'\b([a-zA-Z_]\w*)\s*=\s*(.+?)\s*(?:$|(?=\n))', content, re.MULTILINE)
+        match = re.search(r'\b([\w\u00C0-\u024F\u1E00-\u1EFF\u4E00-\u9FFF]+)\s*=\s*(.+?)\s*(?:$|(?=\n))', content, re.MULTILINE)
         ip_table = eval(match.group(2))
         return ip_table
     
@@ -127,7 +127,7 @@ def main():
 
     file = input("insert the file path:")
 
-    with open(file,"r") as f:
+    with open(file,"r", encoding="utf-8") as f:
         content = f.read()
 
     detector.detect_layer(content)
